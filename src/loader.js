@@ -174,6 +174,7 @@ class Loader {
   static expandParam(param = '', swaggerVersion) {
     // eslint-disable-next-line unicorn/no-unsafe-regex
     const parsed = param.match(/(?:\((.*)\))?\s*([\w._-]*)(?:=([^{*]*))?([*])?\s*{(.*?)(?::(.*))?}\s*(.*)?/);
+    const dataTypes = ['string', 'integer', 'number', 'boolean', 'array', 'object'];
 
     if (!parsed || !parsed[1] || !parsed[5]) return false;
 
@@ -190,31 +191,35 @@ class Loader {
       name: parsed[2],
     };
 
-    const schema = {
-      type: parsed[5].toLowerCase(),
-    };
+    const schema = {};
 
-    if (parsed[3]) schema.default = parsed[3].trim();
-    if (parsed[6]) schema.format = parsed[6];
+    if (dataTypes.includes(parsed[5].toLowerCase()) || !parsed[6]) {
+      schema.type = parsed[5].toLowerCase();
 
-    // Format defaults
-    // (Currently only supports ints and bools; we probably should find a library
-    // to do this safer)
+      if (parsed[3]) schema.default = parsed[3].trim();
+      if (parsed[6]) schema.format = parsed[6];
 
-    if (schema.type === 'integer' && schema.default) {
-      try {
-        schema.default = parseInt(schema.default, 10);
-      } catch (e) {
-        // noop
+      // Format defaults
+      // (Currently only supports ints and bools; we probably should find a library
+      // to do this safer)
+
+      if (schema.type === 'integer' && schema.default) {
+        try {
+          schema.default = parseInt(schema.default, 10);
+        } catch (e) {
+          // noop
+        }
       }
-    }
 
-    if (schema.type === 'boolean' && schema.default) {
-      schema.default = schema.default === 'true';
-    }
+      if (schema.type === 'boolean' && schema.default) {
+        schema.default = schema.default === 'true';
+      }
 
-    if (parsed[4] || out.in === 'path') out.required = true;
-    if (parsed[7]) out.description = parsed[7];
+      if (parsed[4] || out.in === 'path') out.required = true;
+      if (parsed[7]) out.description = parsed[7];
+    } else {
+      schema.$ref = `#/components/${parsed[5]}/${parsed[6]}`;
+    }
 
     // OAS 3.0 moves some schema stuff into its own thing
     if (swaggerVersion >= 3) {
