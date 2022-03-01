@@ -136,6 +136,12 @@ describe('Loader', () => {
           format: 'hi',
           description: 'this is a description',
         },
+        '(body) test {schemas:Test} this is a description': {
+          in: 'body',
+          name: 'test',
+          schema: { $ref: '#/components/schemas/Test' },
+          description: 'this is a description',
+        },
         'test {Boolean:hi} this is a description': false,
         '(body) {Boolean:hi} this is a description': false,
         '(body) test this is a description': false,
@@ -220,6 +226,14 @@ describe('Loader', () => {
             schema: {
               type: 'boolean',
               format: 'hi',
+            },
+            description: 'this is a description',
+          },
+          '(body) test {schemas:Test} this is a description': {
+            in: 'body',
+            name: 'test',
+            schema: {
+              $ref: '#/components/schemas/Test',
             },
             description: 'this is a description',
           },

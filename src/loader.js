@@ -214,12 +214,17 @@ class Loader {
       if (schema.type === 'boolean' && schema.default) {
         schema.default = schema.default === 'true';
       }
-
-      if (parsed[4] || out.in === 'path') out.required = true;
-      if (parsed[7]) out.description = parsed[7];
     } else {
-      schema.$ref = `#/components/${parsed[5]}/${parsed[6]}`;
+      const $ref = `#/components/${parsed[5]}/${parsed[6]}`;
+      if (swaggerVersion >= 3) {
+        schema.$ref = $ref;
+      } else {
+        schema.schema = { $ref };
+      }
     }
+
+    if (parsed[4] || out.in === 'path') out.required = true;
+    if (parsed[7]) out.description = parsed[7];
 
     // OAS 3.0 moves some schema stuff into its own thing
     if (swaggerVersion >= 3) {
